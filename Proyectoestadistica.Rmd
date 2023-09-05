@@ -1,0 +1,18 @@
+---
+title: "ProyectoEstadistica1"
+output: html_document
+date: '2023-08-26'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r warning=FALSE, message=FALSE}
+library(readr)
+
+datos <- read_csv("proyesta.csv")
+```
+
