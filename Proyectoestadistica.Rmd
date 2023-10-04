@@ -15,4 +15,30 @@ library(readr)
 
 datos <- read_csv("proyesta.csv")
 ```
+Gráficos.
+
+1. Gráfico BMI y Enfermedad Cardiaca
+
+```{r}
+datos_filtrados <- datos[datos$BMI < 50, ]
+
+BMICardiaca <- ggplot(datos_filtrados, aes(x = EnfermedadCardiaca, y = BMI, fill = EnfermedadCardiaca)) +
+  geom_boxplot() +
+  labs(x = "Enfermedad Cardiaca", y = "BMI") +
+  scale_fill_manual(values = c("lightblue", "lightgreen")) 
+
+print(BMICardiaca)
+```
+
+2. Gráfico BMI y derrame Cerebral
+
+```{r}
+BMICerebral <- ggplot(datos_filtrados, aes(x = AccidenteCerebrovascular, y = BMI, fill = AccidenteCerebrovascular)) +
+  geom_boxplot() +
+  labs(x = "Derrame Cerebral", y = "BMI",fill = "Derrame Cerebral") +
+  scale_fill_manual(values = c("lightblue", "lightgreen")) 
+
+print(BMICerebral)
+```
+
 
