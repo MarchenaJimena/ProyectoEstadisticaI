@@ -13,7 +13,39 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r warning=FALSE, message=FALSE}
 library(readr)
 
-datos <- read_csv("proyesta.csv")
+datosOriginales <- read_csv("proyesta.csv")
+datos <- datosOriginales %>%
+  rename(
+    EnfermedadCardiaca = HeartDisease,
+    BMI = BMI,
+    Fumador = Smoking,
+    ConsumoAlcohol = AlcoholDrinking,
+    AccidenteCerebrovascular = Stroke,
+    SaludFisica = PhysicalHealth,
+    SaludMental = MentalHealth,
+    DificultadCaminar = DiffWalking,
+    Sexo = Sex,
+    CategoriaEdad = AgeCategory,
+    SaludGeneral = GenHealth,
+    TiempoSueno = SleepTime,
+    Asma = Asthma,
+    EnfermedadRenal = KidneyDisease,
+    CancerPiel = SkinCancer,
+    Raza = Race,
+    Diabetes = Diabetic,
+    ActividadFisica = PhysicalActivity
+  )
+
+traduccion_saludGeneral <- c(
+  "Excelente",
+  "Regular",
+  "Bueno",
+  "Malo",
+  "Muy bueno"
+)
+datos <- datos %>%
+  mutate(SaludGeneral = factor(SaludGeneral, levels = c("Excellent", "Fair", "Good", "Poor", "Very good"), labels = traduccion_saludGeneral))
+
 ```
 Gráficos.
 
