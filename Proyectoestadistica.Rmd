@@ -87,5 +87,28 @@ distimc <- ggplot(datos, aes(x = bmicat, fill = bmicat)) +
   theme_minimal()
 print(distimc)
 ```
+PRUEBA Wilcoxon
 
+Enfermedad Cardiaca
+
+
+```{r}
+datos_con_enfermedad_cardiaca <- datos[datos$EnfermedadCardiaca == "Yes", ]
+datos_sin_enfermedad_cardiaca <- datos[datos$EnfermedadCardiaca == "No", ]
+
+bmiSiCardiaca <- datos_con_enfermedad_cardiaca$BMI
+bmiNoCardiaca <- datos_sin_enfermedad_cardiaca$BMI
+
+wilcox.test(bmiSiCardiaca,bmiNoCardiaca, paired = FALSE)
+```
+
+```{r}
+datos_con_derrame <- datos[datos$AccidenteCerebrovascular == "Yes", ]
+datos_sin_derrame <- datos[datos$AccidenteCerebrovascular == "No", ]
+
+bmiSiDerrame <- datos_con_derrame$BMI
+bmiNoDerrame <- datos_sin_derrame$BMI
+
+wilcox.test(bmiSiDerrame,bmiNoDerrame, paired = FALSE,)
+```
 
