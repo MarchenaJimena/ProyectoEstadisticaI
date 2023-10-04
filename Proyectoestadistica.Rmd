@@ -50,7 +50,7 @@ bmicat <- datos$BMI %>% cut(datos$BMI,
 
 distimc <- ggplot(datos, aes(x = bmicat, fill = bmicat)) +
   geom_bar() +
-  labs(x = "Categoría de IMC", y = "Frecuencia",fill = "Nivel IMC") +
+  labs(x = "Nivel de IMC", y = "Frecuencia",fill = "Nivel IMC") +
   scale_fill_manual(values = c("lightblue", "lightgreen", "lightpink", "lightgray")) +
   theme_minimal()
 print(distimc)
