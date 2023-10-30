@@ -1,0 +1,197 @@
+---
+title: "Bitácora 3"
+output: html_document
+date: "2023-10-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Primeramente, se cargan los datos automáticamente desde una ubicación fija, así como verificar que se encuentra en formato tidy.
+
+```{r}
+library(readr)
+library(dplyr) 
+library(tidyr)
+library(ggplot2)
+datos <- read.csv("heart_2020_cleaned.csv", sep = ",", dec = ".")
+str(datos) #Verificando que cada variable tenga su tipo correspondiente
+View(datos)
+```
+## Análisis Descriptivo de los datos
+
+A continuación se presentará el análisis descriptivo de los datos que rodeen la pregunta de investigación por medio de gráficos y cuadros con el fin de comprender y resumir los datos de forma visual.
+
+#### Distribución de nivel de IMC en adultos estadounidenses en 2020
+```{r}
+bmicat <- datos$BMI %>% cut(datos$BMI, 
+                       breaks = c(0, 18.5, 24.9, 29.9, Inf), 
+                       labels = c("<18.5", "18.5 - 24.9", "25.0 - 29.9", "30.0<"),
+                       right = FALSE)
+
+distimc <- ggplot(datos, aes(x = bmicat, fill = bmicat)) +
+  geom_bar() +
+  labs(x = "Nivel de IMC", y = "Frecuencia",fill = "Nivel IMC") +
+  scale_fill_manual(values = c("lightblue", "lightgreen", "lightpink", "lightgray")) +
+  theme_minimal()
+print(distimc)
+```
+Se puede observar que la mayoría de la población estadounidense tiene un IMC mayor a 25, esto nos indica que un porcentaje significativo tiene un IMC bastante alto, lo que es probable que se encuentren en estado de sobrepeso. Por otra parte, el porcentaje de población con IMC menor a 18.5 es muy pequeño y se nota una gran diferencia entre la frecuencia del nivel de bajo peso y la del peso adecuado. 
+
+#### Frecuencia de tabaquismo en adultos estadounidenses en 2020
+```{r}
+distimc <- ggplot(datos, aes(x = Smoking, fill = Smoking)) +
+  geom_bar() +
+  labs(x = "Tabaquismo", y = "Frecuencia",fill = "Fumador") +
+  scale_fill_manual(values = c("lightblue", "lightgreen")) +
+  theme_minimal()
+print(distimc)
+```
+En este gráfico podemos observar como se divide la población entre fumadores y no fumadores. En particular, se observa que la mayoría de la población no fuma; sin embargo, de igual manera el porcentaje de fumadores no es insignificante ya que igual tiene bastante frecuencia en la población.
+
+#### Frecuencia de alcoholismo en adultos estadounidenses en 2020
+```{r}
+distimc <- ggplot(datos, aes(x = AlcoholDrinking, fill =  AlcoholDrinking)) +
+  geom_bar() +
+  labs(x = "Consumo de Alcohol", y = "Frecuencia",fill = "Consumo de alcohol") +
+  scale_fill_manual(values = c("lightblue", "lightgreen")) +
+  theme_minimal()
+print(distimc + scale_y_continuous(labels = scales::number_format(accuracy = 1)))
+```
+A diferencia del tabaco, existe una brecha grande entre el porcentaje de personas que ingieren alcohol y las que no. En esta población en específico, alrededor del 90% de la población se considera no alcohólica. Estos resultados van en dirección contraria a lo esperado ya que, por lo general, el consumo de alcohol está bastante normalizado y se esperaría que el porcentaje de personas que toman alcohol sea mucho mayor.
+
+#### Frecuencia de actividad física en adultos estadounidenses en 2020
+```{r}
+distimc <- ggplot(datos, aes(x = PhysicalActivity, fill = PhysicalActivity)) +
+  geom_bar() +
+  labs(x = "Actividad Fisica", y = "Frecuencia",fill = "Actividad Fisica") +
+  scale_fill_manual(values = c("lightblue", "lightgreen")) +
+  theme_minimal()
+print(distimc)
+```
+El gráfico señala que alrededor de un 75% (aproximadamente) de la población estudiada realiza actividad física, esto es un indicador importante ya que se conoce que la actividad física puede afectar en la salud general de las personas.
+
+#### Índice de masa corporal y padecimiento de enfermedad cardíaca en adultos estadounidenses en 2020
+
+```{r}
+datos_filtrados <- datos[datos$BMI < 50, ]
+BMICardiaca <- ggplot(datos_filtrados, aes(x = HeartDisease, y = BMI, fill = HeartDisease)) +
+  geom_boxplot() +
+  labs(x = "Enfermedad Cardiaca", y = "IMC", fill= "Enfermedad Cardiaca") +
+  scale_fill_manual(values = c("lightblue", "lightgreen")) 
+
+print(BMICardiaca)
+```
+El gráfico anterior es una visión rápida de la distribución de los datos y es útil para identificar valores atípicos. Observemos a continuación, la diferencia con respecto a Ataque Isquémico:
+
+#### Índice de masa corporal y presencia de Ataque Isquémico en adultos estadounidenses en 2020
+
+```{r}
+BMI_Cerebral <- ggplot(datos_filtrados, aes(x = Stroke, y = BMI, fill = Stroke)) +
+  geom_boxplot() +
+  labs(x = "Ataque Isquémico", y = "IMC",fill = "Ataque Isquémico") +
+  scale_fill_manual(values = c("lightblue", "lightgreen")) 
+
+print(BMI_Cerebral)
+```
+Dados estos últimos dos gráficos, se puede determinar que existe una diferencia entre la mediana de IMC de la población que, sí presenta enfermedades cardiovasculares, con respecto a las que no, además esta diferencia es más significativa en enfermedad cardíaca que en el caso de ataques isquémicos.
+
+
+## Metodología
+
+### Prueba Chi Cuadrado y tablas de contingencia
+
+```{r}
+datos <- datos %>%
+          mutate(CardVasc = ifelse(HeartDisease == "Yes"| Stroke == "Yes", "Yes", "No"))
+
+#Definiendo las variables de interés de la investigación
+variables_de_interes <- c("Smoking", "AlcoholDrinking", "PhysicalHealth", "Sex","AgeCategory")
+
+test <- function(var){
+#Construyendo las tablas de contingencia con respecto a las variables que corresponden a enfermedades cardiovasculares
+tabla_heart <- table(datos$HeartDisease, datos[[var]])
+tabla_stroke <- table(datos$Stroke, datos[[var]])
+tabla_cardvasc <- table(datos$CardVasc, datos[[var]])
+
+cat("\nTabla de contingencia para HeartDisease y", var, ":\n")
+print(tabla_heart)
+
+
+chi2_heart <- chisq.test(tabla_heart)
+print(chi2_heart)
+
+cat("\nTabla de contingencia para Stroke y", var, ":\n")
+print(tabla_stroke)
+
+chi2_stroke <- chisq.test(tabla_stroke)
+print(chi2_stroke)
+
+cat("\nTabla de contingencia para CardVasc y", var, ":\n")
+print(tabla_cardvasc)
+
+chi2_cardvasc <- chisq.test(tabla_cardvasc)
+print(chi2_cardvasc)
+}
+
+
+for (variable in variables_de_interes) {
+  test(variable)}
+
+
+```
+Esta prueba resulta altamente útil para este estudio dado que proporciona un p-valor que indica si existe una dependencia entre las variables que se analizan. En este caso, los resultados señalan que hay un p-valor < 2.2e-16, es decir, un número muy pequeño en relación al nivel de significancia que permite concluir que existe una dependencia entre el IMC, tabaquismo, alcoholismo y la actividad física en relación con las enfermedades cardíacas, los ataques isquémicos y cardiovasculares. Estos resultados rodean directamente a la pregunta de investigación establecida anteriormente. Además, los resultados de esta prueba son consistentes con la teoría, por lo tanto se puede decir que está bien ajustado.
+
+
+### Prueba Wilcoxon-Mann-Whitney
+
+```{r}
+#Se acomodan los datos con tal de analizar dos variables, en este caso IMC-enfermedad cardíaca y IMC-Ataque Isquémico
+
+BMI_Yes_HeartDisease <- datos$BMI[datos$HeartDisease == "Yes"]
+
+BMI_No_HeartDisease <- datos$BMI[datos$HeartDisease == "No"]
+
+BMI_Yes_Stroke <- datos$BMI[datos$Stroke == "Yes"]
+
+BMI_No_Stroke <- datos$BMI[datos$Stroke == "No"]
+
+#Se aplica la prueba de Wilcoxon-Mann-Whitney
+wilcox.test(BMI_Yes_HeartDisease, BMI_No_HeartDisease)
+
+wilcox.test(BMI_Yes_Stroke, BMI_No_Stroke)
+
+```
+Si bien esta prueba es valiosa para analizar el indice de masa corporal con respecto las variables que representan la presencia de enfermedades cardiovasculares, es decir, enfermedad cardiaca y ataque isquémico, no se puede utilizar para comparar dos variables categóricas en sí. Por esta razón, no permite evaluar las demás variables de interés (Smoking, AlcoholDrinking, PhysicalActivity, AgeCategory, Sex) por lo que solo responde parcialmente a la pregunta de investigación. Por otra parte, se puede decir que se rechaza la hipótesis nula dado que el p-valor es tan pequeño, es decir, que hay una asociación significativa entre las dos variables analizadas. Esta es una prueba no paramétrica, por lo que no hay necesidad de ajustar el modelo.
+
+### Test exacto de Fisher
+
+Se deben crear tablas de contingencia 2x2 con cada una de las variables de estudio para poder aplicar el test. Además se utiliza la variable creada "CardVasc" que contempla si la persona padece una enfermedad cardiaca(HeartDisease) o un ataque isquémico(Stroke).
+
+```{r}
+#Tablas de contingencia de tabaquismo con enfermedad cardiovascular
+CardVasc_Smoke <- table(datos$CardVasc, datos$Smoking, dnn = c("Enfermedad Cardiovascular", "Tabaquismo"))
+
+#Tablas de contingencia de actividad física con enfermedad cardiovascular
+CardVasc_PA <- table(datos$CardVasc, datos$PhysicalActivity, dnn = c("Enfermedad Cardiovascular", "Actividad Física"))
+
+#Tablas de contingencia de alcoholismo con enfermedad cardiovascular
+CardVasc_AD <- table(datos$CardVasc, datos$AlcoholDrinking, dnn = c("Enfermedad Cardiovascular", "Alcoholismo"))
+
+#Tablas de contingencia de sexo con enfermedad cardiovascular
+CardVasc_Sex <- table(datos$CardVasc, datos$Sex, dnn = c("Enfermedad Cardiovascular", "Sexo"))
+
+
+#Se aplica el test de Fisher
+
+fisher.test(CardVasc_Smoke)
+
+fisher.test(CardVasc_PA)
+
+fisher.test(CardVasc_AD)
+
+fisher.test(CardVasc_Sex)
+```
+Este test permite determinar que existe una relación entre el tabaquismo, actividad física, y alcoholismo con las enfermedades cardiacas y los ataques isquémicos, dado que el p-valor obtenido es muy pequeño en relación con el nivel de significancia.
+Nótese que el test se utiliza para analizar dos variables categóricas, por lo tanto, las variables de IMC y categoría de edad no se pueden analizar como tal por lo tanto si bien es sumamente útil para determinar la relación entre las demás variables, solo responde parcialmente a la pregunta de investigación. Nuevamente, esta prueba también es no paramétrica por lo que no hay nada que se le pueda ajustar al modelo.
+
